@@ -1,16 +1,12 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
+	"recyco/config"
+	"recyco/routes"
 )
 
 func main() {
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-	})
-
-	http.HandleFunc("/index", index)
-
-	fmt.Println("starting web server at http://localhost:8080/")
-	http.ListenAndServe(":8080", nil)
+	config.ConnectDatabase()
+	r := routes.SetupRouter()
+	r.Run(":8080")
 }
