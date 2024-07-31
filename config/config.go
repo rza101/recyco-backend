@@ -3,7 +3,7 @@ package config
 import {
 	"recyo/model"
 	"gorm.io/driver/mysql"
-	"gorn.io/gorm"
+	"gorm.io/gorm"
 }
 
 func config () {
@@ -11,6 +11,7 @@ func config () {
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 }
 
-model.automigrate(){
-	&user.model
-}
+db.AutoMigrate(
+	&user,
+	&article,
+)

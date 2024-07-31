@@ -2,15 +2,20 @@ package middlewares
 
 import (
 	"net/http"
-	"recyco/config"
-	"recyco/models"
-	"recyco/utils"
 	"strings"
+	"sync"
+
+	"latihan/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
-func JWTAuthMiddleware() gin.HandlerFunc {
+var (
+	blacklistedTokens = make(map[string]struct{})
+	mu                sync.Mutex
+)
+
+func JWTBlacklistMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -18,29 +23,31 @@ func JWTAuthMiddleware() gin.HandlerFunc {
 			c.Abort()
 			return
 		}
+
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
 			utils.RespondFailed(c, http.StatusUnauthorized, "Invalid authorization header format", nil)
 			c.Abort()
 			return
 		}
+
 		token := parts[1]
-		claims, err := utils.ValidateToken(token)
-		if err != nil {
-			utils.RespondFailed(c, http.StatusUnauthorized, "Invalid token", nil)
+
+		mu.Lock()
+		_, exists := blacklistedTokens[token]
+		mu.Unlock()
+
+		if exists {
+			utils.RespondFailed(c, http.StatusUnauthorized, "Token has been revoked", nil)
 			c.Abort()
 			return
 		}
-		c.Set("userID", claims.UserID)
-
-		var user models.User
-		if err := config.DB.Where("id = ?", claims.UserID).First(&user).Error; err != nil {
-			utils.RespondFailed(c, http.StatusUnauthorized, "User not found", nil)
-			c.Abort()
-			return
-		}
-
-		c.Set("userRole", user.Role)
 		c.Next()
 	}
+}
+
+func AddToBlacklist(token string) {
+	mu.Lock()
+	blacklistedTokens[token] = struct{}{}
+	mu.Unlock()
 }
