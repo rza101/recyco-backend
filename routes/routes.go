@@ -76,7 +76,7 @@ func SetupRouter() *gin.Engine {
 	communityRoutes := r.Group("/communities")
 	communityRoutes.Use(middlewares.JWTAuthMiddleware(), middlewares.JWTBlacklistMiddleware())
 	{
-		communityRoutes.POST("/", middlewares.RoleMiddleware("ADMIN"), controllers.CreateCommunity)
+		communityRoutes.POST("/", controllers.CreateCommunity)
 		communityRoutes.GET("/", controllers.GetCommunities)
 	}
 
