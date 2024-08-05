@@ -1,0 +1,11 @@
+{
+    "apps": [
+        {
+            "name": "main",
+            "script": "./recyco",
+            "max_restarts": 100,
+            "min_uptime": 5000,
+            "restart_delay": 3000
+        }
+    ]
+}
